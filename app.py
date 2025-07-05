@@ -6,8 +6,8 @@ import streamlit as st
 client = OpenAI(api_key=st.secrets["openai_api_key"])
 
 
-st.set_page_config(page_title="Contract Analyzer", layout="centered")
-st.title("📄 AI Contract Analyzer")
+st.set_page_config(page_title="ProDocs - AI Contract Analyser", layout="centered")
+st.title("📄 ProDocs - AI Contract Analyser")
 
 uploaded_file = st.file_uploader("Upload a contract (PDF or TXT)", type=["pdf", "txt"])
 contract_text = ""
