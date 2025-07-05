@@ -27,8 +27,8 @@ if contract_text:
     st.subheader("📃 Contract Preview")
     st.text_area("Text Extracted", contract_text, height=300)
 
-    if st.button("🔍 Analyze"):
-        with st.spinner("Analyzing contract..."):
+    if st.button("🔍 Analyse contract"):
+        with st.spinner("Heeelllooo little fishies..."):
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
