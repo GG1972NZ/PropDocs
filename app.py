@@ -36,7 +36,7 @@ if contract_text:
 
     # Analyse button
     if st.button("🔍 Analyse contract"):
-        with st.spinner("Heeelllooo little fishies..."):
+        with st.spinner("🐟🐟🐟 eeelllooo little fishies..."):
 
             # Language-specific prompts
             if output_language == "Thai":
