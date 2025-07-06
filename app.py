@@ -41,8 +41,8 @@ if contract_text:
     #output_language = st.radio("🗣️ Analysis Output Language", ["Thai", "English", "Italian"], index=0)
 
     # Analyse button
-    if st.button("🔍 Squeeze plastic bottle"):
-        with st.spinner("🐟🐟🐟 eeelllooo little fishies..."):
+    if st.button("🔍 Analyse contract"):
+        with st.spinner("Analysing contract..."):
 
             # Language-specific prompts
             if output_language == "Thai":
