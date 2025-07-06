@@ -31,11 +31,17 @@ if contract_text:
     st.text_area("Text Extracted", contract_text, height=300)
 
     # Language radio boxes in the main body
-    contract_language = st.radio("📄 Contract Language (Input)", ["Thai", "English", "Italian"], index=0)
-    output_language = st.radio("🗣️ Analysis Output Language", ["Thai", "English", "Italian"], index=0)
+    st.markdown("### 📄 **Contract Language (Input)**")
+    contract_language = st.radio("", ["Thai", "English", "Italian"], index=0)
+
+    st.markdown("### 🗣️ **Analysis Output Language**")
+    output_language = st.radio("", ["Thai", "English", "Italian"], index=0)
+ 
+    #contract_language = st.radio("📄 Contract Language (Input)", ["Thai", "English", "Italian"], index=0)
+    #output_language = st.radio("🗣️ Analysis Output Language", ["Thai", "English", "Italian"], index=0)
 
     # Analyse button
-    if st.button("🔍 Analyse contract"):
+    if st.button("🔍 Squeeze plastic bottle"):
         with st.spinner("🐟🐟🐟 eeelllooo little fishies..."):
 
             # Language-specific prompts
