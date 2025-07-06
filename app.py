@@ -25,22 +25,20 @@ if uploaded_file:
     elif file_type == "txt":
         contract_text = uploaded_file.read().decode("utf-8")
 
-# If text was extracted, show preview and analysis options
+# If text was extracted, show preview and language options
 if contract_text:
     st.subheader("📃 Contract Preview")
     st.text_area("Text Extracted", contract_text, height=300)
 
-    # Contract language input (manual confirmation for accuracy)
-    contract_language = st.selectbox("📄 Contract Language", ["Thai", "English"])
-
-    # Output language (Thai default)
-    output_language = st.radio("🗣️ Output Analysis Language", ["Thai", "English"], index=0)
+    # Language radio boxes in the main body
+    contract_language = st.radio("📄 Contract Language (Input)", ["Thai", "English", "Italian"], index=0)
+    output_language = st.radio("🗣️ Analysis Output Language", ["Thai", "English", "Italian"], index=0)
 
     # Analyse button
     if st.button("🔍 Analyse contract"):
         with st.spinner("Heeelllooo little fishies..."):
 
-            # Choose prompt based on output language
+            # Language-specific prompts
             if output_language == "Thai":
                 system_prompt = (
                     "คุณเป็นผู้ช่วยด้านกฎหมาย วิเคราะห์เอกสารสัญญาฉบับนี้ "
@@ -48,7 +46,13 @@ if contract_text:
                     "จากนั้นให้ข้อเสนอแนะเกี่ยวกับความเสี่ยง ข้อที่ขาดหายไป และความคลุมเครือ "
                     "ทั้งหมดให้แสดงผลเป็นภาษาไทย"
                 )
-            else:
+            elif output_language == "Italian":
+                system_prompt = (
+                    "Sei un assistente legale. Analizza questo contratto iniziando con l’estrazione dei dati principali "
+                    "come durata, prezzo e località. Poi fornisci un’analisi sui rischi, clausole mancanti e ambiguità. "
+                    "Scrivi tutto in italiano."
+                )
+            else:  # English
                 system_prompt = (
                     "You are a legal assistant. First, extract key contract metadata such as term, price, and location. "
                     "Then analyze the contract and provide feedback on risks, missing clauses, and ambiguities. "
