@@ -30,18 +30,30 @@ if contract_text:
     st.subheader("📃 Contract Preview")
     st.text_area("Text Extracted", contract_text, height=300)
 
-    # Language selector
-    language = st.selectbox("Select analysis language", ["English", "Thai"])
+    # Contract language input (manual confirmation for accuracy)
+    contract_language = st.selectbox("📄 Contract Language", ["Thai", "English"])
+
+    # Output language (Thai default)
+    output_language = st.radio("🗣️ Output Analysis Language", ["Thai", "English"], index=0)
 
     # Analyse button
     if st.button("🔍 Analyse contract"):
         with st.spinner("Heeelllooo little fishies..."):
 
-            # Choose prompt based on language
-            if language == "Thai":
-                system_prompt = "คุณเป็นผู้ช่วยด้านกฎหมาย วิเคราะห์สัญญานี้และให้ข้อเสนอแนะเกี่ยวกับความเสี่ยง ข้อที่ขาดหายไป และความคลุมเครือเป็นภาษาไทย"
+            # Choose prompt based on output language
+            if output_language == "Thai":
+                system_prompt = (
+                    "คุณเป็นผู้ช่วยด้านกฎหมาย วิเคราะห์เอกสารสัญญาฉบับนี้ "
+                    "โดยเริ่มจากการระบุข้อมูลสำคัญ เช่น ระยะเวลาสัญญา จำนวนเงิน และสถานที่ "
+                    "จากนั้นให้ข้อเสนอแนะเกี่ยวกับความเสี่ยง ข้อที่ขาดหายไป และความคลุมเครือ "
+                    "ทั้งหมดให้แสดงผลเป็นภาษาไทย"
+                )
             else:
-                system_prompt = "You are a legal assistant. Analyze the contract and give feedback on risks, missing clauses, and ambiguities."
+                system_prompt = (
+                    "You are a legal assistant. First, extract key contract metadata such as term, price, and location. "
+                    "Then analyze the contract and provide feedback on risks, missing clauses, and ambiguities. "
+                    "Respond in English."
+                )
 
             # Call OpenAI API
             response = client.chat.completions.create(
