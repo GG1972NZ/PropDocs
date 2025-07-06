@@ -32,11 +32,11 @@ if contract_text:
 
     # Language radio boxes in the main body
     st.markdown("### 📄 **Contract Language (Input)**")
-    contract_language = st.radio("", ["Thai", "English", "Italian"], index=0)
+    contract_language = st.radio("", ["Thai", "English", "Italian"], index=0, key="contract_language")
 
     st.markdown("### 🗣️ **Analysis Output Language**")
-    output_language = st.radio("", ["Thai", "English", "Italian"], index=0)
- 
+    output_language = st.radio("", ["Thai", "English", "Italian"], index=0, key="output_language")
+
     #contract_language = st.radio("📄 Contract Language (Input)", ["Thai", "English", "Italian"], index=0)
     #output_language = st.radio("🗣️ Analysis Output Language", ["Thai", "English", "Italian"], index=0)
 
