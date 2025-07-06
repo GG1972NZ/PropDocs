@@ -6,8 +6,8 @@ import fitz  # PyMuPDF
 client = OpenAI(api_key=st.secrets["openai_api_key"])
 
 # Streamlit page settings
-st.set_page_config(page_title="ProDocs - AI Contract Analyser", layout="centered")
-st.title("📄 ProDocs - AI Contract Analyser")
+st.set_page_config(page_title="PropDocs - AI Contract Analyser", layout="centered")
+st.title("📄 PropDocs - AI Contract Analyser")
 
 # File uploader
 uploaded_file = st.file_uploader("Upload a contract (PDF or TXT)", type=["pdf", "txt"])
