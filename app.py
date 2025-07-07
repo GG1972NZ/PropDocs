@@ -36,6 +36,7 @@ if uploaded_file:
         contract_text = uploaded_file.read().decode("utf-8")
 
 if "feedback" not in st.session_state:
+    st.session_state.translated_text = ""
     st.session_state.feedback = ""
     st.session_state.risk_label = ""
 
@@ -51,6 +52,7 @@ if contract_text:
 
     if st.button("🔍 Analyse contract"):
         with st.spinner("Analysing contract..."):
+        st.markdown("⏳ Step 1: Analysing contract...")
             if output_language == "Thai":
                 system_prompt = (
                     "คุณเป็นผู้ช่วยด้านกฎหมาย วิเคราะห์เอกสารสัญญาฉบับนี้ "
@@ -71,7 +73,7 @@ if contract_text:
                     "At the end, include a line like: RiskScore: 1–10, where 10 is highest risk."
                 )
 
-            response = client.chat.completions.create(
+                    response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": system_prompt},
@@ -93,6 +95,7 @@ if contract_text:
                 st.session_state.risk_label = f"🚨 Risk Score: {score}/10 🔴 High (1 = Low, 10 = High)"
 
             st.session_state.feedback = feedback
+        st.markdown("✅ 📑 Contract analysis complete.")
 
 if st.session_state.feedback:
 
@@ -109,7 +112,7 @@ if st.session_state.feedback:
     translated_text = ""
     if contract_language != output_language:
         translation_prompt = f"Translate the following contract from {contract_language} to {output_language}:\n\n{contract_text}"
-        translation_response = client.chat.completions.create(
+        translation_        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": f"You are a legal translator. Translate only the contract text below into {output_language}."},
@@ -118,7 +121,7 @@ if st.session_state.feedback:
         )
         translated_text = translation_response.choices[0].message.content
 
-    translation_section = f"\n\n---\n\n### 🌐 Translated Contract:\n\n{translated_text}" if translated_text else ""
+    translation_section = f"\n\n---\n\n### 🌐 Translated Contract:\n\n{st.session_state.translated_text}" if st.session_state.translated_text else ""
 
 
     risk_display = st.session_state.get("risk_label", "🚨 Risk Score: Not specified ⚪ Unknown (1 = Low, 10 = High)")
