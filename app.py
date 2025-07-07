@@ -83,7 +83,7 @@ if contract_text:
             )
 
             feedback = response.choices[0].message.content
-            match = re.search(r"RiskScore[:\-]?\s*(\d{1,2})", feedback)
+            match = re.search(r"Risk[\s_]*Score[:=\-]?\s*(\d{1,2})", feedback, re.IGNORECASE)
             score = int(match.group(1)) if match else None
 
             if score is None:
@@ -95,7 +95,9 @@ if contract_text:
             else:
                 st.session_state.risk_label = f"🚨 Risk Score: {score}/10 🔴 High (1 = Low, 10 = High)"
 
-            st.session_state.feedback = feedback
+            if score:
+                feedback = re.sub(r"Risk[\s_]*Score[:=\-]?\s*\d{1,2}", "", feedback, flags=re.IGNORECASE)
+            st.session_state.feedback = feedback.strip()
             st.markdown("✅ 📑 Contract analysis complete.")
 
             if contract_language != output_language:
