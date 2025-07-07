@@ -2,8 +2,6 @@
 from openai import OpenAI
 import streamlit as st
 import fitz  # PyMuPDF
-import io
-from fpdf import FPDF
 
 # Set up OpenAI client
 client = OpenAI(api_key=st.secrets["openai_api_key"])
@@ -45,7 +43,7 @@ if uploaded_file:
 if "feedback" not in st.session_state:
     st.session_state.feedback = ""
 
-# Main logic
+# Display contract input and language selection
 if contract_text:
     st.subheader("📃 Contract Preview")
     st.text_area("Text Extracted", contract_text, height=300)
@@ -87,14 +85,32 @@ if contract_text:
             )
             st.session_state.feedback = response.choices[0].message.content
 
-# Show AI feedback if available
+# Show AI feedback with extracted metadata
 if st.session_state.feedback:
-    metadata_md = """\n\n### 📊 Extracted Metadata
+
+    # Extract metadata using simple regex matching
+    import re
+    def extract_metadata(text):
+        def match(pattern):
+            m = re.search(pattern, text, re.IGNORECASE)
+            return m.group(1).strip() if m else "Not specified"
+
+        term = match(r"(?:term|duration)[^\n:]*[:\-]\s*(.+)")
+        price = match(r"(?:price|amount|rent)[^\n:]*[:\-]\s*(.+)")
+        location = match(r"(?:location|address)[^\n:]*[:\-]\s*(.+)")
+        return term, price, location
+
+    term, price, location = extract_metadata(st.session_state.feedback)
+
+    metadata_md = f"""
+
+### 📊 Extracted Metadata
 
 | Term         | Price        | Location     |
 |--------------|--------------|--------------|
-| Not specified | Not specified | Not specified |
+| {term} | {price} | {location} |
 """
+
     feedback_with_metadata = st.session_state.feedback + metadata_md
     st.markdown(feedback_with_metadata)
 
@@ -103,31 +119,4 @@ if st.session_state.feedback:
         data=st.session_state.feedback,
         file_name="contract_analysis.txt",
         mime="text/plain"
-    )
-
-    # PDF generation (ASCII-safe)
-    class PDF(FPDF):
-        def header(self):
-            self.set_font("Arial", "B", 12)
-            self.cell(0, 10, "Contract Analysis", ln=True, align="C")
-            self.ln(10)
-
-        def chapter_body(self, body):
-            self.set_font("Arial", "", 12)
-            self.multi_cell(0, 10, body)
-
-    pdf = PDF()
-    pdf.add_page()
-    ascii_feedback = feedback_with_metadata.encode("ascii", "ignore").decode()
-    pdf.chapter_body(ascii_feedback)
-
-    pdf_buffer = io.BytesIO()
-    pdf.output(pdf_buffer)
-    pdf_buffer.seek(0)
-
-    st.download_button(
-        label="📄 Download Analysis as PDF",
-        data=pdf_buffer,
-        file_name="contract_analysis.pdf",
-        mime="application/pdf"
     )
