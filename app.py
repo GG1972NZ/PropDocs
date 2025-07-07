@@ -1,6 +1,9 @@
+
 from openai import OpenAI
 import streamlit as st
 import fitz  # PyMuPDF
+import io
+from fpdf import FPDF
 
 # Set up OpenAI client
 client = OpenAI(api_key=st.secrets["openai_api_key"])
@@ -27,7 +30,6 @@ contract_text = ""
 # Extract text from uploaded file
 if uploaded_file:
     file_type = uploaded_file.name.split('.')[-1].lower()
-
     if file_type == "pdf":
         pdf_doc = fitz.open(stream=uploaded_file.read(), filetype="pdf")
         contract_text = ""
@@ -43,26 +45,19 @@ if uploaded_file:
 if "feedback" not in st.session_state:
     st.session_state.feedback = ""
 
-# If text was extracted, show preview and language options
+# Main logic
 if contract_text:
     st.subheader("📃 Contract Preview")
     st.text_area("Text Extracted", contract_text, height=300)
 
-    # Language radio boxes in the main body
     st.markdown("### 📄 **Contract Language (Input)**")
     contract_language = st.radio("", ["Thai", "English", "Italian"], index=0, key="contract_language")
 
     st.markdown("### 🗣️ **Analysis Output Language**")
     output_language = st.radio("", ["Thai", "English", "Italian"], index=0, key="output_language")
 
-    #contract_language = st.radio("📄 Contract Language (Input)", ["Thai", "English", "Italian"], index=0)
-    #output_language = st.radio("🗣️ Analysis Output Language", ["Thai", "English", "Italian"], index=0)
-
-    # Analyse button
     if st.button("🔍 Analyse contract"):
         with st.spinner("Analysing contract..."):
-
-            # Language-specific prompts
             if output_language == "Thai":
                 system_prompt = (
                     "คุณเป็นผู้ช่วยด้านกฎหมาย วิเคราะห์เอกสารสัญญาฉบับนี้ "
@@ -76,14 +71,13 @@ if contract_text:
                     "come durata, prezzo e località. Poi fornisci un’analisi sui rischi, clausole mancanti e ambiguità. "
                     "Scrivi tutto in italiano."
                 )
-            else:  # English
+            else:
                 system_prompt = (
                     "You are a legal assistant. First, extract key contract metadata such as term, price, and location. "
                     "Then analyze the contract and provide feedback on risks, missing clauses, and ambiguities. "
                     "Respond in English."
                 )
 
-            # Call OpenAI API
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
@@ -91,22 +85,11 @@ if contract_text:
                     {"role": "user", "content": contract_text}
                 ]
             )
-
-            # Display AI feedback
             st.session_state.feedback = response.choices[0].message.content
 
-            
-            
-
-
-                        
-
+# Show AI feedback if available
 if st.session_state.feedback:
-
-    # Inject basic markdown metadata into feedback (placeholder)
-    metadata_md = """
-
-### 📊 Extracted Metadata
+    metadata_md = """\n\n### 📊 Extracted Metadata
 
 | Term         | Price        | Location     |
 |--------------|--------------|--------------|
@@ -122,18 +105,7 @@ if st.session_state.feedback:
         mime="text/plain"
     )
 
-    # 🧾 Attempt to extract basic metadata (mock example)
-    import pandas as pd
-    import io
-    from fpdf import FPDF
-
-    meta_data = {
-        "Term": ["Not specified"],
-        "Price": ["Not specified"],
-        "Location": ["Not specified"]
-    }
-
-        # 🧾 Export as PDF
+    # PDF generation (ASCII-safe)
     class PDF(FPDF):
         def header(self):
             self.set_font("Arial", "B", 12)
@@ -146,7 +118,8 @@ if st.session_state.feedback:
 
     pdf = PDF()
     pdf.add_page()
-    pdf.chapter_body(st.session_state.feedback)
+    ascii_feedback = feedback_with_metadata.encode("ascii", "ignore").decode()
+    pdf.chapter_body(ascii_feedback)
 
     pdf_buffer = io.BytesIO()
     pdf.output(pdf_buffer)
