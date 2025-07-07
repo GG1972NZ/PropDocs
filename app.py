@@ -1,4 +1,3 @@
-
 from openai import OpenAI
 import streamlit as st
 import fitz  # PyMuPDF
@@ -6,6 +5,7 @@ import re
 
 client = OpenAI(api_key=st.secrets["openai_api_key"])
 
+# Streamlit layout
 st.markdown("""
 <style>
     .block-container {
@@ -20,9 +20,11 @@ st.markdown("""
 st.set_page_config(page_title="PropDocs - AI Contract Analyser", layout="centered")
 st.title("📄 PropDocs - AI Contract Analyser")
 
+# Upload file
 uploaded_file = st.file_uploader("Upload a contract (PDF, DOCX, or TXT)", type=["pdf", "txt", "docx"])
 contract_text = ""
 
+# Extract text
 if uploaded_file:
     file_type = uploaded_file.name.split('.')[-1].lower()
     if file_type == "pdf":
@@ -38,14 +40,15 @@ if uploaded_file:
 if "feedback" not in st.session_state:
     st.session_state.feedback = ""
 
+# UI
 if contract_text:
     st.subheader("📃 Contract Preview")
     st.text_area("Text Extracted", contract_text, height=300)
 
-    st.markdown("### 📄 **Contract Language (Input)**")
+    st.markdown("### 📄 Contract Language (Input)")
     contract_language = st.radio("", ["Thai", "English", "Italian"], index=0, key="contract_language")
 
-    st.markdown("### 🗣️ **Analysis Output Language**")
+    st.markdown("### 🗣️ Analysis Output Language")
     output_language = st.radio("", ["Thai", "English", "Italian"], index=0, key="output_language")
 
     if st.button("🔍 Analyse contract"):
@@ -80,6 +83,7 @@ if contract_text:
 
             st.session_state.feedback = response.choices[0].message.content
 
+# Display result
 if st.session_state.feedback:
 
     def extract_metadata(text):
@@ -100,13 +104,12 @@ if st.session_state.feedback:
 
     if score is None:
         risk_display = "🚨 Risk Score: Not specified ⚪ Unknown (1 = Low, 10 = High)"
+    elif score <= 3:
+        risk_display = f"🚨 Risk Score: {score}/10 🟢 Very Low (1 = Low, 10 = High)"
+    elif score <= 6:
+        risk_display = f"🚨 Risk Score: {score}/10 🟡 Moderate (1 = Low, 10 = High)"
     else:
-        if score <= 3:
-            risk_display = f"🚨 Risk Score: {score}/10 🟢 Very Low (1 = Low, 10 = High)"
-        elif score <= 6:
-            risk_display = f"🚨 Risk Score: {score}/10 🟡 Moderate (1 = Low, 10 = High)"
-        else:
-            risk_display = f"🚨 Risk Score: {score}/10 🔴 High (1 = Low, 10 = High)"
+        risk_display = f"🚨 Risk Score: {score}/10 🔴 High (1 = Low, 10 = High)"
 
     summary = f"""{risk_display}
 
@@ -121,6 +124,7 @@ if st.session_state.feedback:
 ### 🧠 AI Feedback:
 {st.session_state.feedback}
 """
+
     st.markdown(summary)
 
     st.download_button(
