@@ -21,7 +21,7 @@ st.set_page_config(page_title="PropDocs - AI Contract Analyser", layout="centere
 st.title("📄 PropDocs - AI Contract Analyser")
 
 # File uploader
-uploaded_file = st.file_uploader("Upload a contract (PDF or TXT)", type=["pdf", "txt"])
+uploaded_file = st.file_uploader("Upload a contract (PDF, DOCX, or TXT)", type=["pdf", "txt", "docx"])
 contract_text = ""
 
 # Extract text from uploaded file
@@ -33,6 +33,10 @@ if uploaded_file:
         contract_text = ""
         for page in pdf_doc:
             contract_text += page.get_text()
+    elif file_type == "docx":
+        from docx import Document
+        doc = Document(uploaded_file)
+        contract_text = "\n".join([para.text for para in doc.paragraphs])
     elif file_type == "txt":
         contract_text = uploaded_file.read().decode("utf-8")
 
@@ -105,6 +109,48 @@ if st.session_state.feedback:
 
     st.download_button(
         label="💾 Download Analysis as Text",
+    # 🧾 Attempt to extract basic metadata (mock example)
+    import pandas as pd
+    import io
+    from fpdf import FPDF
+
+    # You can replace this logic with real extraction based on LLM parsing
+    meta_data = {
+        "Term": ["Not specified"],
+        "Price": ["Not specified"],
+        "Location": ["Not specified"]
+    }
+
+    st.subheader("📊 Extracted Metadata (basic placeholder)")
+    df = pd.DataFrame(meta_data)
+    st.table(df)
+
+    # 🧾 Export as PDF
+    class PDF(FPDF):
+        def header(self):
+            self.set_font("Arial", "B", 12)
+            self.cell(0, 10, "Contract Analysis", ln=True, align="C")
+            self.ln(10)
+
+        def chapter_body(self, body):
+            self.set_font("Arial", "", 12)
+            self.multi_cell(0, 10, body)
+
+    pdf = PDF()
+    pdf.add_page()
+    pdf.chapter_body(st.session_state.feedback)
+
+    pdf_buffer = io.BytesIO()
+    pdf.output(pdf_buffer)
+    pdf_buffer.seek(0)
+
+    st.download_button(
+        label="📄 Download Analysis as PDF",
+        data=pdf_buffer,
+        file_name="contract_analysis.pdf",
+        mime="application/pdf"
+    )
+
         data=st.session_state.feedback,
         file_name="contract_analysis.txt",
         mime="text/plain"
