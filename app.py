@@ -107,7 +107,8 @@ if st.session_state.feedback:
 
     term, price, location = extract_metadata(st.session_state.feedback)
 
-    summary = f"""{st.session_state.risk_label}
+    risk_display = st.session_state.get("risk_label", "🚨 Risk Score: Not specified ⚪ Unknown (1 = Low, 10 = High)")
+    summary = f"""{risk_display}
 
 ### 📊 Key Contract Metadata:
 
