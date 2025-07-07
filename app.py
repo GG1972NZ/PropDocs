@@ -36,6 +36,9 @@ if uploaded_file:
     elif file_type == "txt":
         contract_text = uploaded_file.read().decode("utf-8")
 
+if "feedback" not in st.session_state:
+    st.session_state.feedback = ""
+
 # If text was extracted, show preview and language options
 if contract_text:
     st.subheader("📃 Contract Preview")
@@ -86,17 +89,17 @@ if contract_text:
             )
 
             # Display AI feedback
-            feedback = response.choices[0].message.content
+            st.session_state.feedback = response.choices[0].message.content
 
             
             # Display AI feedback again before download (to keep it on screen)
             st.subheader("🧠 AI Feedback")
-            st.markdown(feedback)
+            st.markdown(st.session_state.feedback)
 
             # 💾 Download option
             st.download_button(
                 label="💾 Download Analysis as Text",
-                data=feedback,
+                data=st.session_state.feedback,
                 file_name="contract_analysis.txt",
                 mime="text/plain"
             )
