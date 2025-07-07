@@ -4,10 +4,8 @@ import streamlit as st
 import fitz  # PyMuPDF
 import re
 
-# Set up OpenAI client
 client = OpenAI(api_key=st.secrets["openai_api_key"])
 
-# Streamlit page settings
 st.markdown("""
 <style>
     .block-container {
@@ -22,18 +20,14 @@ st.markdown("""
 st.set_page_config(page_title="PropDocs - AI Contract Analyser", layout="centered")
 st.title("📄 PropDocs - AI Contract Analyser")
 
-# File uploader
 uploaded_file = st.file_uploader("Upload a contract (PDF, DOCX, or TXT)", type=["pdf", "txt", "docx"])
 contract_text = ""
 
-# Extract text from uploaded file
 if uploaded_file:
     file_type = uploaded_file.name.split('.')[-1].lower()
     if file_type == "pdf":
         pdf_doc = fitz.open(stream=uploaded_file.read(), filetype="pdf")
-        contract_text = ""
-        for page in pdf_doc:
-            contract_text += page.get_text()
+        contract_text = "".join([page.get_text() for page in pdf_doc])
     elif file_type == "docx":
         from docx import Document
         doc = Document(uploaded_file)
@@ -44,7 +38,6 @@ if uploaded_file:
 if "feedback" not in st.session_state:
     st.session_state.feedback = ""
 
-# Display UI and process contract
 if contract_text:
     st.subheader("📃 Contract Preview")
     st.text_area("Text Extracted", contract_text, height=300)
@@ -85,60 +78,54 @@ if contract_text:
                 ]
             )
 
-            # Extract feedback and prepend a numeric risk score
-            raw_feedback = response.choices[0].message.content
+            st.session_state.feedback = response.choices[0].message.content
 
-            def extract_risk_score(text):
-                match = re.search(r"RiskScore[:\-]?\s*(\d{1,2})", text)
-                return int(match.group(1)) if match else None
-
-            score = extract_risk_score(raw_feedback)
-            if score is None:
-                rating = "⚪ Unknown"
-                label = "Not specified"
-            elif score <= 3:
-                rating = "🟢 Very Low"
-                label = f"{score}/10"
-            elif score <= 6:
-                rating = "🟡 Moderate"
-                label = f"{score}/10"
-            else:
-                rating = "🔴 High"
-                label = f"{score}/10"
-
-            header = f"### 🚨 Risk Score: **{label}** {rating} _(1 = Low, 10 = High)_\\n\\n"
-            st.session_state.feedback = header + raw_feedback
-
-# Show feedback with metadata table
 if st.session_state.feedback:
 
     def extract_metadata(text):
         def match(pattern):
             m = re.search(pattern, text, re.IGNORECASE)
             return m.group(1).strip("* ").strip() if m else "Not specified"
-
         term = match(r"(?:term|duration)[^\n:]*[:\-]\s*(.+)")
         price = match(r"(?:price|amount|rent)[^\n:]*[:\-]\s*(.+)")
         location = match(r"(?:location|address)[^\n:]*[:\-]\s*(.+)")
         return term, price, location
 
+    def extract_risk_score(text):
+        match = re.search(r"RiskScore[:\-]?\s*(\d{1,2})", text)
+        return int(match.group(1)) if match else None
+
     term, price, location = extract_metadata(st.session_state.feedback)
+    score = extract_risk_score(st.session_state.feedback)
 
-    metadata_md = f"""
+    if score is None:
+        risk_display = "🚨 Risk Score: Not specified ⚪ Unknown (1 = Low, 10 = High)"
+    else:
+        if score <= 3:
+            risk_display = f"🚨 Risk Score: {score}/10 🟢 Very Low (1 = Low, 10 = High)"
+        elif score <= 6:
+            risk_display = f"🚨 Risk Score: {score}/10 🟡 Moderate (1 = Low, 10 = High)"
+        else:
+            risk_display = f"🚨 Risk Score: {score}/10 🔴 High (1 = Low, 10 = High)"
 
-### 📊 Extracted Metadata
+    summary = f"""{risk_display}
 
-| Term         | Price        | Location     |
-|--------------|--------------|--------------|
-| {term} | {price} | {location} |
+### 📊 Key Contract Metadata:
+
+- **Term:** {term}
+- **Price:** {price}
+- **Location:** {location}
+
+---
+
+### 🧠 AI Feedback:
+{st.session_state.feedback}
 """
-
-    full_output = st.session_state.feedback + metadata_md
-    st.markdown(full_output)
+    st.markdown(summary)
 
     st.download_button(
         label="💾 Download Analysis as Text",
-        data=st.session_state.feedback,
+        data=summary,
         file_name="contract_analysis.txt",
         mime="text/plain"
     )
