@@ -96,19 +96,25 @@ if contract_text:
             st.session_state.feedback = response.choices[0].message.content
 
             
-            # Display AI feedback again before download (to keep it on screen)
-            st.subheader("🧠 AI Feedback")
-            st.markdown(st.session_state.feedback)
-
+            
 
 
                         
 
 if st.session_state.feedback:
-    st.subheader("🧠 AI Feedback")
-    st.markdown(st.session_state.feedback)
 
-    # 💾 Download Analysis as Text
+    # Inject basic markdown metadata into feedback (placeholder)
+    metadata_md = """
+
+### 📊 Extracted Metadata
+
+| Term         | Price        | Location     |
+|--------------|--------------|--------------|
+| Not specified | Not specified | Not specified |
+"""
+    feedback_with_metadata = st.session_state.feedback + metadata_md
+    st.markdown(feedback_with_metadata)
+
     st.download_button(
         label="💾 Download Analysis as Text",
         data=st.session_state.feedback,
@@ -127,11 +133,7 @@ if st.session_state.feedback:
         "Location": ["Not specified"]
     }
 
-    st.subheader("📊 Extracted Metadata (basic placeholder)")
-    df = pd.DataFrame(meta_data)
-    st.table(df)
-
-    # 🧾 Export as PDF
+        # 🧾 Export as PDF
     class PDF(FPDF):
         def header(self):
             self.set_font("Arial", "B", 12)
