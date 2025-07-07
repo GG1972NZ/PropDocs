@@ -52,7 +52,8 @@ if contract_text:
 
     if st.button("🔍 Analyse contract"):
         with st.spinner("Analysing contract..."):
-        st.markdown("⏳ Step 1: Analysing contract...")
+            st.markdown("⏳ Step 1: Analysing contract...")
+
             if output_language == "Thai":
                 system_prompt = (
                     "คุณเป็นผู้ช่วยด้านกฎหมาย วิเคราะห์เอกสารสัญญาฉบับนี้ "
@@ -73,7 +74,7 @@ if contract_text:
                     "At the end, include a line like: RiskScore: 1–10, where 10 is highest risk."
                 )
 
-                    response = client.chat.completions.create(
+            response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": system_prompt},
@@ -95,7 +96,20 @@ if contract_text:
                 st.session_state.risk_label = f"🚨 Risk Score: {score}/10 🔴 High (1 = Low, 10 = High)"
 
             st.session_state.feedback = feedback
-        st.markdown("✅ 📑 Contract analysis complete.")
+            st.markdown("✅ 📑 Contract analysis complete.")
+
+            if contract_language != output_language:
+                st.markdown("⏳ Step 2: Translating contract...")
+                translation_prompt = f"Translate the following contract from {contract_language} to {output_language}:\n\n{contract_text}"
+                translation_response = client.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": f"You are a legal translator. Translate only the contract text below into {output_language}."},
+                        {"role": "user", "content": translation_prompt}
+                    ]
+                )
+                st.session_state.translated_text = translation_response.choices[0].message.content
+                st.markdown("✅ 🌐 Contract translation complete.")
 
 if st.session_state.feedback:
 
@@ -109,23 +123,11 @@ if st.session_state.feedback:
         return term, price, location
 
     term, price, location = extract_metadata(st.session_state.feedback)
-    translated_text = ""
-    if contract_language != output_language:
-        translation_prompt = f"Translate the following contract from {contract_language} to {output_language}:\n\n{contract_text}"
-        translation_        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": f"You are a legal translator. Translate only the contract text below into {output_language}."},
-                {"role": "user", "content": translation_prompt}
-            ]
-        )
-        translated_text = translation_response.choices[0].message.content
-
-    translation_section = f"\n\n---\n\n### 🌐 Translated Contract:\n\n{st.session_state.translated_text}" if st.session_state.translated_text else ""
-
+    translated_text = st.session_state.get("translated_text", "")
+    translation_section = f"\n\n---\n\n### 🌐 Translated Contract:\n\n{translated_text}" if translated_text else ""
 
     risk_display = st.session_state.get("risk_label", "🚨 Risk Score: Not specified ⚪ Unknown (1 = Low, 10 = High)")
-    summary = f"""{risk_display}{translation_section}
+    summary = f"{risk_display}{translation_section}
 
 ### 📊 Key Contract Metadata:
 
@@ -136,8 +138,8 @@ if st.session_state.feedback:
 ---
 
 ### 🧠 AI Feedback:
-{st.session_state.feedback}
-"""
+{st.session_state.feedback}"
+
     st.markdown(summary)
 
     st.download_button(
