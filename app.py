@@ -98,7 +98,7 @@ if st.session_state.feedback:
         term = match(r"(?:term|duration)[^\n:]*[:\-]\s*(.+)")
         price = match(r"(?:price|amount|rent)[^\n:]*[:\-]\s*(.+)")
         location = match(r"(?:location|address)[^\n:]*[:\-]\s*(.+)")
-        return term, price, location
+        return term.strip("*").strip(), price.strip("*").strip(), location.strip("*").strip()
 
     term, price, location = extract_metadata(st.session_state.feedback)
 
@@ -108,7 +108,7 @@ if st.session_state.feedback:
 
 | Term         | Price        | Location     |
 |--------------|--------------|--------------|
-| {term} | {price} | {location} |
+| {term.strip("*")} | {price.strip("*")} | {location.strip("*")} |
 """
 
     feedback_with_metadata = st.session_state.feedback + metadata_md
