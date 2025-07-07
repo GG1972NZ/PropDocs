@@ -51,7 +51,7 @@ if contract_text:
     output_language = st.radio("", ["Thai", "English", "Italian"], index=0, key="output_language")
 
     if st.button("🔍 Analyse contract"):
-        with st.spinner("Analysing contract..."):
+        with st.spinner("🤖 Deploying AI-powered contract lawyer..."):
             st.markdown("⏳ Step 1: Analysing contract...")
 
             if output_language == "Thai":
