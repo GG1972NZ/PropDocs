@@ -1,3 +1,4 @@
+
 from openai import OpenAI
 import streamlit as st
 import fitz  # PyMuPDF
@@ -5,7 +6,6 @@ import re
 
 client = OpenAI(api_key=st.secrets["openai_api_key"])
 
-# Streamlit layout
 st.markdown("""
 <style>
     .block-container {
@@ -20,11 +20,9 @@ st.markdown("""
 st.set_page_config(page_title="PropDocs - AI Contract Analyser", layout="centered")
 st.title("📄 PropDocs - AI Contract Analyser")
 
-# Upload file
 uploaded_file = st.file_uploader("Upload a contract (PDF, DOCX, or TXT)", type=["pdf", "txt", "docx"])
 contract_text = ""
 
-# Extract text
 if uploaded_file:
     file_type = uploaded_file.name.split('.')[-1].lower()
     if file_type == "pdf":
@@ -39,8 +37,8 @@ if uploaded_file:
 
 if "feedback" not in st.session_state:
     st.session_state.feedback = ""
+    st.session_state.risk_label = ""
 
-# UI
 if contract_text:
     st.subheader("📃 Contract Preview")
     st.text_area("Text Extracted", contract_text, height=300)
@@ -81,9 +79,21 @@ if contract_text:
                 ]
             )
 
-            st.session_state.feedback = response.choices[0].message.content
+            feedback = response.choices[0].message.content
+            match = re.search(r"RiskScore[:\-]?\s*(\d{1,2})", feedback)
+            score = int(match.group(1)) if match else None
 
-# Display result
+            if score is None:
+                st.session_state.risk_label = "🚨 Risk Score: Not specified ⚪ Unknown (1 = Low, 10 = High)"
+            elif score <= 3:
+                st.session_state.risk_label = f"🚨 Risk Score: {score}/10 🟢 Very Low (1 = Low, 10 = High)"
+            elif score <= 6:
+                st.session_state.risk_label = f"🚨 Risk Score: {score}/10 🟡 Moderate (1 = Low, 10 = High)"
+            else:
+                st.session_state.risk_label = f"🚨 Risk Score: {score}/10 🔴 High (1 = Low, 10 = High)"
+
+            st.session_state.feedback = feedback
+
 if st.session_state.feedback:
 
     def extract_metadata(text):
@@ -95,23 +105,9 @@ if st.session_state.feedback:
         location = match(r"(?:location|address)[^\n:]*[:\-]\s*(.+)")
         return term, price, location
 
-    def extract_risk_score(text):
-        match = re.search(r"RiskScore[:\-]?\s*(\d{1,2})", text)
-        return int(match.group(1)) if match else None
-
     term, price, location = extract_metadata(st.session_state.feedback)
-    score = extract_risk_score(st.session_state.feedback)
 
-    if score is None:
-        risk_display = "🚨 Risk Score: Not specified ⚪ Unknown (1 = Low, 10 = High)"
-    elif score <= 3:
-        risk_display = f"🚨 Risk Score: {score}/10 🟢 Very Low (1 = Low, 10 = High)"
-    elif score <= 6:
-        risk_display = f"🚨 Risk Score: {score}/10 🟡 Moderate (1 = Low, 10 = High)"
-    else:
-        risk_display = f"🚨 Risk Score: {score}/10 🔴 High (1 = Low, 10 = High)"
-
-    summary = f"""{risk_display}
+    summary = f"""{st.session_state.risk_label}
 
 ### 📊 Key Contract Metadata:
 
@@ -124,7 +120,6 @@ if st.session_state.feedback:
 ### 🧠 AI Feedback:
 {st.session_state.feedback}
 """
-
     st.markdown(summary)
 
     st.download_button(
