@@ -96,9 +96,8 @@ if contract_text:
             translate_to = st.selectbox("Select translation language", ["None", "Thai", "English", "Italian"], index=0)
 
             if translate_to != "None" and translate_to != output_language:
-                translation_prompt = f"Translate the following legal analysis into {translate_to}:"
+                translation_prompt = f"Translate the following legal analysis into {translate_to}:\n\n{feedback}"
 
-{feedback}"
                 translation_response = client.chat.completions.create(
                     model="gpt-3.5-turbo",
                     messages=[
