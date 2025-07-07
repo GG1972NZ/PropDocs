@@ -127,7 +127,7 @@ if st.session_state.feedback:
     translation_section = f"\n\n---\n\n### 🌐 Translated Contract:\n\n{translated_text}" if translated_text else ""
 
     risk_display = st.session_state.get("risk_label", "🚨 Risk Score: Not specified ⚪ Unknown (1 = Low, 10 = High)")
-    summary = f"{risk_display}{translation_section}
+    summary = f"""{risk_display}{translation_section}
 
 ### 📊 Key Contract Metadata:
 
@@ -138,7 +138,8 @@ if st.session_state.feedback:
 ---
 
 ### 🧠 AI Feedback:
-{st.session_state.feedback}"
+{st.session_state.feedback}
+"""
 
     st.markdown(summary)
 
