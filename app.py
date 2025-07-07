@@ -2,6 +2,7 @@
 from openai import OpenAI
 import streamlit as st
 import fitz  # PyMuPDF
+import re
 
 # Set up OpenAI client
 client = OpenAI(api_key=st.secrets["openai_api_key"])
@@ -43,7 +44,7 @@ if uploaded_file:
 if "feedback" not in st.session_state:
     st.session_state.feedback = ""
 
-# Display contract input and language selection
+# Display UI and process contract
 if contract_text:
     st.subheader("📃 Contract Preview")
     st.text_area("Text Extracted", contract_text, height=300)
@@ -61,19 +62,19 @@ if contract_text:
                     "คุณเป็นผู้ช่วยด้านกฎหมาย วิเคราะห์เอกสารสัญญาฉบับนี้ "
                     "โดยเริ่มจากการระบุข้อมูลสำคัญ เช่น ระยะเวลาสัญญา จำนวนเงิน และสถานที่ "
                     "จากนั้นให้ข้อเสนอแนะเกี่ยวกับความเสี่ยง ข้อที่ขาดหายไป และความคลุมเครือ "
-                    "ทั้งหมดให้แสดงผลเป็นภาษาไทย"
+                    "และสุดท้ายให้ระบุ RiskScore: 1–10 ซึ่ง 10 หมายถึงความเสี่ยงสูงสุด"
                 )
             elif output_language == "Italian":
                 system_prompt = (
                     "Sei un assistente legale. Analizza questo contratto iniziando con l’estrazione dei dati principali "
                     "come durata, prezzo e località. Poi fornisci un’analisi sui rischi, clausole mancanti e ambiguità. "
-                    "Scrivi tutto in italiano."
+                    "Infine, scrivi una riga: RiskScore: 1–10, dove 10 è il rischio massimo."
                 )
             else:
                 system_prompt = (
                     "You are a legal assistant. First, extract key contract metadata such as term, price, and location. "
                     "Then analyze the contract and provide feedback on risks, missing clauses, and ambiguities. "
-                    "Respond in English."
+                    "At the end, include a line like: RiskScore: 1–10, where 10 is highest risk."
                 )
 
             response = client.chat.completions.create(
@@ -83,22 +84,43 @@ if contract_text:
                     {"role": "user", "content": contract_text}
                 ]
             )
-            st.session_state.feedback = response.choices[0].message.content
 
-# Show AI feedback with extracted metadata
+            # Extract feedback and prepend a numeric risk score
+            raw_feedback = response.choices[0].message.content
+
+            def extract_risk_score(text):
+                match = re.search(r"RiskScore[:\-]?\s*(\d{1,2})", text)
+                return int(match.group(1)) if match else None
+
+            score = extract_risk_score(raw_feedback)
+            if score is None:
+                rating = "⚪ Unknown"
+                label = "Not specified"
+            elif score <= 3:
+                rating = "🟢 Very Low"
+                label = f"{score}/10"
+            elif score <= 6:
+                rating = "🟡 Moderate"
+                label = f"{score}/10"
+            else:
+                rating = "🔴 High"
+                label = f"{score}/10"
+
+            header = f"### 🚨 Risk Score: **{label}** {rating}\n\n"
+            st.session_state.feedback = header + raw_feedback
+
+# Show feedback with metadata table
 if st.session_state.feedback:
 
-    # Extract metadata using simple regex matching
-    import re
     def extract_metadata(text):
         def match(pattern):
             m = re.search(pattern, text, re.IGNORECASE)
-            return m.group(1).strip() if m else "Not specified"
+            return m.group(1).strip("* ").strip() if m else "Not specified"
 
         term = match(r"(?:term|duration)[^\n:]*[:\-]\s*(.+)")
         price = match(r"(?:price|amount|rent)[^\n:]*[:\-]\s*(.+)")
         location = match(r"(?:location|address)[^\n:]*[:\-]\s*(.+)")
-        return term.strip("*").strip(), price.strip("*").strip(), location.strip("*").strip()
+        return term, price, location
 
     term, price, location = extract_metadata(st.session_state.feedback)
 
@@ -108,11 +130,11 @@ if st.session_state.feedback:
 
 | Term         | Price        | Location     |
 |--------------|--------------|--------------|
-| {term.strip("*")} | {price.strip("*")} | {location.strip("*")} |
+| {term} | {price} | {location} |
 """
 
-    feedback_with_metadata = st.session_state.feedback + metadata_md
-    st.markdown(feedback_with_metadata)
+    full_output = st.session_state.feedback + metadata_md
+    st.markdown(full_output)
 
     st.download_button(
         label="💾 Download Analysis as Text",
