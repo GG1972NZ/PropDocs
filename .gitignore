@@ -1,1 +1,4 @@
 .streamlit/secrets.toml
+# Ignore archive and backups
+_Archive/
+*.bak
