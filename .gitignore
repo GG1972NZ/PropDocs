@@ -1,4 +1,8 @@
 .streamlit/secrets.toml
+
 # Ignore archive and backups
 _Archive/
 *.bak
+
+# Ignore contract documents
+*.pdf
