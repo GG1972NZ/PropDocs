@@ -122,7 +122,7 @@ if st.session_state.feedback:
 
 
     risk_display = st.session_state.get("risk_label", "🚨 Risk Score: Not specified ⚪ Unknown (1 = Low, 10 = High)")
-    summary = f"""{risk_display}
+    summary = f"""{risk_display}{translation_section}
 
 ### 📊 Key Contract Metadata:
 
