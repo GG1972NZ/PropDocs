@@ -96,11 +96,16 @@ if contract_text:
             st.subheader("🧠 AI Feedback")
             st.markdown(st.session_state.feedback)
 
-            # 💾 Download option
-            st.download_button(
-                label="💾 Download Analysis as Text",
-                data=st.session_state.feedback,
-                file_name="contract_analysis.txt",
-                mime="text/plain"
-            )
-            
+
+
+                        
+if st.session_state.feedback:
+    st.subheader("🧠 AI Feedback")
+    st.markdown(st.session_state.feedback)
+
+    st.download_button(
+        label="💾 Download Analysis as Text",
+        data=st.session_state.feedback,
+        file_name="contract_analysis.txt",
+        mime="text/plain"
+    )
