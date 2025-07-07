@@ -106,7 +106,7 @@ if contract_text:
                 rating = "🔴 High"
                 label = f"{score}/10"
 
-            header = f"### 🚨 Risk Score: **{label}** {rating}\n\n"
+            header = f"### 🚨 Risk Score: **{label}** {rating} _(1 = Low, 10 = High)_\\n\\n"
             st.session_state.feedback = header + raw_feedback
 
 # Show feedback with metadata table
