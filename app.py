@@ -103,18 +103,24 @@ if contract_text:
 
 
                         
+
 if st.session_state.feedback:
     st.subheader("🧠 AI Feedback")
     st.markdown(st.session_state.feedback)
 
+    # 💾 Download Analysis as Text
     st.download_button(
         label="💾 Download Analysis as Text",
+        data=st.session_state.feedback,
+        file_name="contract_analysis.txt",
+        mime="text/plain"
+    )
+
     # 🧾 Attempt to extract basic metadata (mock example)
     import pandas as pd
     import io
     from fpdf import FPDF
 
-    # You can replace this logic with real extraction based on LLM parsing
     meta_data = {
         "Term": ["Not specified"],
         "Price": ["Not specified"],
@@ -149,9 +155,4 @@ if st.session_state.feedback:
         data=pdf_buffer,
         file_name="contract_analysis.pdf",
         mime="application/pdf"
-    )
-
-        data=st.session_state.feedback,
-        file_name="contract_analysis.txt",
-        mime="text/plain"
     )
