@@ -6,6 +6,17 @@ import fitz  # PyMuPDF
 client = OpenAI(api_key=st.secrets["openai_api_key"])
 
 # Streamlit page settings
+st.markdown("""
+<style>
+    .block-container {
+        padding-top: 2rem;
+    }
+    h3 {
+        color: #1a75ff;
+        font-weight: bold;
+    }
+</style>
+""", unsafe_allow_html=True)
 st.set_page_config(page_title="PropDocs - AI Contract Analyser", layout="centered")
 st.title("📄 PropDocs - AI Contract Analyser")
 
@@ -76,5 +87,35 @@ if contract_text:
 
             # Display AI feedback
             feedback = response.choices[0].message.content
+
+            st.subheader("🧠 AI Feedback")
+            st.markdown(feedback)
+
+            # 🌍 Translation toggle
+            st.markdown("### 🌍 Translate Output")
+            translate_to = st.selectbox("Select translation language", ["None", "Thai", "English", "Italian"], index=0)
+
+            if translate_to != "None" and translate_to != output_language:
+                translation_prompt = f"Translate the following legal analysis into {translate_to}:
+
+{feedback}"
+                translation_response = client.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": f"You are a legal translator. Translate everything into {translate_to}."},
+                        {"role": "user", "content": translation_prompt}
+                    ]
+                )
+                translated_output = translation_response.choices[0].message.content
+                st.subheader(f"🌐 Translated Output ({translate_to})")
+                st.markdown(translated_output)
+
+            # 💾 Download option
+            st.download_button(
+                label="💾 Download Analysis as Text",
+                data=feedback,
+                file_name="contract_analysis.txt",
+                mime="text/plain"
+            )
             st.subheader("🧠 AI Feedback")
             st.markdown(feedback)
