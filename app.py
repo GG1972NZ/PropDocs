@@ -106,6 +106,20 @@ if st.session_state.feedback:
         return term, price, location
 
     term, price, location = extract_metadata(st.session_state.feedback)
+    translated_text = ""
+    if contract_language != output_language:
+        translation_prompt = f"Translate the following contract from {contract_language} to {output_language}:\n\n{contract_text}"
+        translation_response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": f"You are a legal translator. Translate only the contract text below into {output_language}."},
+                {"role": "user", "content": translation_prompt}
+            ]
+        )
+        translated_text = translation_response.choices[0].message.content
+
+    translation_section = f"\n\n---\n\n### 🌐 Translated Contract:\n\n{translated_text}" if translated_text else ""
+
 
     risk_display = st.session_state.get("risk_label", "🚨 Risk Score: Not specified ⚪ Unknown (1 = Low, 10 = High)")
     summary = f"""{risk_display}
