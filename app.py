@@ -89,6 +89,10 @@ if contract_text:
             feedback = response.choices[0].message.content
 
             
+            # Display AI feedback again before download (to keep it on screen)
+            st.subheader("🧠 AI Feedback")
+            st.markdown(feedback)
+
             # 💾 Download option
             st.download_button(
                 label="💾 Download Analysis as Text",
