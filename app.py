@@ -20,10 +20,15 @@ def count_tokens(text, model="gpt-3.5-turbo"):
     enc = tiktoken.encoding_for_model(model)
     return len(enc.encode(text))
 
-uploaded_file = st.file_uploader("Upload a contract (PDF, DOCX, or TXT)", type=["pdf", "txt", "docx"])
 st.markdown("""
-💡 **Tip:** For best results, upload contracts under **10 pages** to stay within AI token limits (16,385 tokens max).
-""")
+<div style='color: #666; font-size: 0.9rem; margin-bottom: 0.5rem; text-align: center;'>
+    💡 <strong>Tip:</strong> For best results, upload contracts under <strong>10 pages</strong> 
+    or <strong>80 KB</strong> to stay within AI token limits (16,385 tokens max).
+</div>
+""", unsafe_allow_html=True)
+
+uploaded_file = st.file_uploader("Upload a contract (PDF, DOCX, or TXT)", type=["pdf", "txt", "docx"])
+
 contract_text = ""
 
 if uploaded_file:
