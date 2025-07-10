@@ -4,7 +4,7 @@ import fitz  # PyMuPDF
 import re
 import tiktoken
 
-MAX_TOKENS = 16385
+MAX_TOKENS = 128000
 
 client = OpenAI(api_key=st.secrets["openai_api_key"])
 
