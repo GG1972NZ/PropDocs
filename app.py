@@ -21,6 +21,9 @@ def count_tokens(text, model="gpt-3.5-turbo"):
     return len(enc.encode(text))
 
 uploaded_file = st.file_uploader("Upload a contract (PDF, DOCX, or TXT)", type=["pdf", "txt", "docx"])
+st.markdown("""
+💡 **Tip:** For best results, upload contracts under **10 pages** to stay within AI token limits (16,385 tokens max).
+""")
 contract_text = ""
 
 if uploaded_file:
