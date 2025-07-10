@@ -8,13 +8,11 @@ MAX_TOKENS = 16385
 
 client = OpenAI(api_key=st.secrets["openai_api_key"])
 
-st.set_page_config(page_title="PropDocs - AI Contract Analyser", layout="centered")
 st.markdown("""
-<style>
-    .block-container { padding-top: 2rem; }
-    h3 { color: #1a75ff; font-weight: bold; }
-</style>
+<h1 style="margin-bottom:0.2rem;">📄 PropDocs</h1>
+<h3 style="margin-top:0; color:#444;">AI Contract Analyser</h3>
 """, unsafe_allow_html=True)
+
 st.title("📄 PropDocs - AI Contract Analyser")
 
 def count_tokens(text, model="gpt-3.5-turbo"):
