@@ -9,11 +9,12 @@ MAX_TOKENS = 16385
 client = OpenAI(api_key=st.secrets["openai_api_key"])
 
 st.markdown("""
-<h1 style="margin-bottom:0.2rem;">📄 PropDocs</h1>
-<h3 style="margin-top:0; color:#444;">AI Contract Analyser</h3>
+<div style="text-align:center">
+    <h1 style="margin-bottom:0.2rem;">📄 PropDocs 📄</h1>
+    <h3 style="margin-top:0; color:#444; font-weight:normal;">AI Contract Analyser</h3>
+</div>
 """, unsafe_allow_html=True)
 
-st.title("📄 PropDocs - AI Contract Analyser")
 
 def count_tokens(text, model="gpt-3.5-turbo"):
     enc = tiktoken.encoding_for_model(model)
