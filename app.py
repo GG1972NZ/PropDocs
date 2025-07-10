@@ -1,24 +1,25 @@
-
 from openai import OpenAI
 import streamlit as st
 import fitz  # PyMuPDF
 import re
+import tiktoken
+
+MAX_TOKENS = 16385
 
 client = OpenAI(api_key=st.secrets["openai_api_key"])
 
+st.set_page_config(page_title="PropDocs - AI Contract Analyser", layout="centered")
 st.markdown("""
 <style>
-    .block-container {
-        padding-top: 2rem;
-    }
-    h3 {
-        color: #1a75ff;
-        font-weight: bold;
-    }
+    .block-container { padding-top: 2rem; }
+    h3 { color: #1a75ff; font-weight: bold; }
 </style>
 """, unsafe_allow_html=True)
-st.set_page_config(page_title="PropDocs - AI Contract Analyser", layout="centered")
 st.title("📄 PropDocs - AI Contract Analyser")
+
+def count_tokens(text, model="gpt-3.5-turbo"):
+    enc = tiktoken.encoding_for_model(model)
+    return len(enc.encode(text))
 
 uploaded_file = st.file_uploader("Upload a contract (PDF, DOCX, or TXT)", type=["pdf", "txt", "docx"])
 contract_text = ""
@@ -44,6 +45,14 @@ if contract_text:
     st.subheader("📃 Contract Preview")
     st.text_area("Text Extracted", contract_text, height=300)
 
+    token_count = count_tokens(contract_text)
+    st.markdown(f"**Token count:** {token_count} / {MAX_TOKENS}")
+    st.progress(min(token_count / MAX_TOKENS, 1.0))
+
+    if token_count > MAX_TOKENS:
+        st.error(f"❌ Document too long to process: {token_count} tokens (max is {MAX_TOKENS}). Please shorten the document.")
+        st.stop()
+
     st.markdown("### 📄 Contract Language (Input)")
     contract_language = st.radio("", ["Thai", "English", "Italian"], index=0, key="contract_language")
 
@@ -54,25 +63,13 @@ if contract_text:
         with st.spinner("Deploying AI-powered contract lawyer..."):
             st.markdown("⏳ Step 1: Analysing contract...")
 
-            if output_language == "Thai":
-                system_prompt = (
-                    "คุณเป็นผู้ช่วยด้านกฎหมาย วิเคราะห์เอกสารสัญญาฉบับนี้ "
-                    "โดยเริ่มจากการระบุข้อมูลสำคัญ เช่น ระยะเวลาสัญญา จำนวนเงิน และสถานที่ "
-                    "จากนั้นให้ข้อเสนอแนะเกี่ยวกับความเสี่ยง ข้อที่ขาดหายไป และความคลุมเครือ "
-                    "และสุดท้ายให้ระบุ RiskScore: 1–10 ซึ่ง 10 หมายถึงความเสี่ยงสูงสุด"
-                )
-            elif output_language == "Italian":
-                system_prompt = (
-                    "Sei un assistente legale. Analizza questo contratto iniziando con l’estrazione dei dati principali "
-                    "come durata, prezzo e località. Poi fornisci un’analisi sui rischi, clausole mancanti e ambiguità. "
-                    "Infine, scrivi una riga: RiskScore: 1–10, dove 10 è il rischio massimo."
-                )
-            else:
-                system_prompt = (
-                    "You are a legal assistant. First, extract key contract metadata such as term, price, and location. "
-                    "Then analyze the contract and provide feedback on risks, missing clauses, and ambiguities. "
-                    "At the end, include a line like: RiskScore: 1–10, where 10 is highest risk."
-                )
+            system_prompts = {
+                "Thai": "คุณเป็นผู้ช่วยด้านกฎหมาย วิเคราะห์เอกสารสัญญาฉบับนี้ โดยเริ่มจากการระบุข้อมูลสำคัญ เช่น ระยะเวลาสัญญา จำนวนเงิน และสถานที่ จากนั้นให้ข้อเสนอแนะเกี่ยวกับความเสี่ยง ข้อที่ขาดหายไป และความคลุมเครือ และสุดท้ายให้ระบุ RiskScore: 1–10 ซึ่ง 10 หมายถึงความเสี่ยงสูงสุด",
+                "Italian": "Sei un assistente legale. Analizza questo contratto iniziando con l’estrazione dei dati principali come durata, prezzo e località. Poi fornisci un’analisi sui rischi, clausole mancanti e ambiguità. Infine, scrivi una riga: RiskScore: 1–10, dove 10 è il rischio massimo.",
+                "English": "You are a legal assistant. First, extract key contract metadata such as term, price, and location. Then analyze the contract and provide feedback on risks, missing clauses, and ambiguities. At the end, include a line like: RiskScore: 1–10, where 10 is highest risk."
+            }
+
+            system_prompt = system_prompts.get(output_language, system_prompts["English"])
 
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
@@ -144,10 +141,4 @@ if st.session_state.feedback:
 """
 
     st.markdown(summary)
-
-    st.download_button(
-        label="💾 Download Analysis as Text",
-        data=summary,
-        file_name="contract_analysis.txt",
-        mime="text/plain"
-    )
+    st.download_button("💾 Download Analysis as Text", summary, "contract_analysis.txt", "text/plain")
