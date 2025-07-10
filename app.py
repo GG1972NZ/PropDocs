@@ -12,7 +12,7 @@ st.markdown("""
 <div style="text-align:center">
     <h1 style="margin-bottom:0.2rem;">📄 PropDocs 📄</h1>
     <h3 style="margin-top:0; color:#666; font-weight:normal;">AI Contract Analyser</h3>
-    <hr style="border: none; height: 1px; background-color: #ccc; margin: 1rem auto; width: 80%;">
+    <hr style="border: none; height: 1px; background-color: #ccc; margin: 1rem auto; width: 100%;">
 </div>
 """, unsafe_allow_html=True)
 
