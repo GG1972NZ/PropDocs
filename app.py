@@ -16,7 +16,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-def count_tokens(text, model="gpt-3.5-turbo"):
+def count_tokens(text, model="gpt-4-turbo"):
     enc = tiktoken.encoding_for_model(model)
     return len(enc.encode(text))
 
@@ -79,7 +79,7 @@ if contract_text:
             system_prompt = system_prompts.get(output_language, system_prompts["English"])
 
             response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
+                model="gpt-4-turbo",
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": contract_text}
@@ -108,7 +108,7 @@ if contract_text:
                 st.markdown("⏳ Step 2: Translating contract...")
                 translation_prompt = f"Translate the following contract from {contract_language} to {output_language}:\n\n{contract_text}"
                 translation_response = client.chat.completions.create(
-                    model="gpt-3.5-turbo",
+                    model="gpt-4-turbo",
                     messages=[
                         {"role": "system", "content": f"You are a legal translator. Translate only the contract text below into {output_language}."},
                         {"role": "user", "content": translation_prompt}
