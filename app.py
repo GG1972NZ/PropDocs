@@ -12,10 +12,9 @@ st.markdown("""
 <div style="text-align:center">
     <h1 style="margin-bottom:0.2rem;">📄 PropDocs 📄</h1>
     <h3 style="margin-top:0; color:#666; font-weight:normal;">AI Contract Analyser</h3>
-    <hr style="border: none; height: 1px; background-color: #ccc; margin-top: 1rem; width: 60%;">
+    <hr style="border: none; height: 1px; background-color: #ccc; margin: 1rem auto; width: 80%;">
 </div>
 """, unsafe_allow_html=True)
-
 
 def count_tokens(text, model="gpt-3.5-turbo"):
     enc = tiktoken.encoding_for_model(model)
